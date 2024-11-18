@@ -1,0 +1,328 @@
+---
+title: "Data_Science-Project"
+format: html
+editor: visual
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+library(dplyr)
+```
+
+```{r}
+
+
+#census_api_key("b0cdbf85146c5be42ad75927549c75f9df774b2c", install = TRUE)
+
+# Define variables for "In Armed Forces", "Employed", "Unemployed", and "Not in Labor Force"
+variables <- c(
+  # Men
+  men_armed_16_19 = "B23001_005",
+  men_employed_16_19 = "B23001_007",
+  men_unemployed_16_19 = "B23001_008",
+  men_not_in_labor_16_19 = "B23001_009",
+  men_armed_20_21 = "B23001_012",
+  men_employed_20_21 = "B23001_014",
+  men_unemployed_20_21 = "B23001_015",
+  men_not_in_labor_20_21 = "B23001_016",
+  men_armed_22_24 = "B23001_019",
+  men_employed_22_24 = "B23001_021",
+  men_unemployed_22_24 = "B23001_022",
+  men_not_in_labor_22_24 = "B23001_023",
+  men_armed_25_29 = "B23001_026",
+  men_employed_25_29 = "B23001_028",
+  men_unemployed_25_29 = "B23001_029",
+  men_not_in_labor_25_29 = "B23001_030",
+  men_armed_30_34 = "B23001_033",
+  men_employed_30_34 = "B23001_035",
+  men_unemployed_30_34 = "B23001_036",
+  men_not_in_labor_30_34 = "B23001_037",
+  men_armed_35_44 = "B23001_040",
+  men_employed_35_44 = "B23001_042",
+  men_unemployed_35_44 = "B23001_043",
+  men_not_in_labor_35_44 = "B23001_044",
+  men_armed_45_54 = "B23001_047",
+  men_employed_45_54 = "B23001_049",
+  men_unemployed_45_54 = "B23001_050",
+  men_not_in_labor_45_54 = "B23001_051",
+  men_armed_55_59 = "B23001_054",
+  men_employed_55_59 = "B23001_056",
+  men_unemployed_55_59 = "B23001_057",
+  men_not_in_labor_55_59 = "B23001_058",
+  men_armed_60_61 = "B23001_061",
+  men_employed_60_61 = "B23001_063",
+  men_unemployed_60_61 = "B23001_064",
+  men_not_in_labor_60_61 = "B23001_065",
+  men_armed_62_64 = "B23001_068",
+  men_employed_62_64 = "B23001_070",
+  men_unemployed_62_64 = "B23001_071",
+  men_not_in_labor_62_64 = "B23001_072",
+  men_employed_65_69 = "B23001_075",
+  men_unemployed_65_69 = "B23001_076",
+  men_not_in_labor_65_69 = "B23001_077",
+  men_employed_70_74 = "B23001_080",
+  men_unemployed_70_74 = "B23001_081",
+  men_not_in_labor_70_74 = "B23001_082",
+  men_employed_75_over = "B23001_085",
+  men_unemployed_75_over = "B23001_086",
+  men_not_in_labor_75_over = "B23001_087",
+
+  # Women
+  women_armed_16_19 = "B23001_091",
+  women_employed_16_19 = "B23001_093",
+  women_unemployed_16_19 = "B23001_094",
+  women_not_in_labor_16_19 = "B23001_095",
+  women_armed_20_21 = "B23001_098",
+  women_employed_20_21 = "B23001_100",
+  women_unemployed_20_21 = "B23001_101",
+  women_not_in_labor_20_21 = "B23001_102",
+  women_armed_22_24 = "B23001_105",
+  women_employed_22_24 = "B23001_107",
+  women_unemployed_22_24 = "B23001_108",
+  women_not_in_labor_22_24 = "B23001_109",
+  women_armed_25_29 = "B23001_112",
+  women_employed_25_29 = "B23001_114",
+  women_unemployed_25_29 = "B23001_115",
+  women_not_in_labor_25_29 = "B23001_116",
+  women_armed_30_34 = "B23001_119",
+  women_employed_30_34 = "B23001_121",
+  women_unemployed_30_34 = "B23001_122",
+  women_not_in_labor_30_34 = "B23001_123",
+  women_armed_35_44 = "B23001_126",
+  women_employed_35_44 = "B23001_128",
+  women_unemployed_35_44 = "B23001_129",
+  women_not_in_labor_35_44 = "B23001_130",
+  women_armed_45_54 = "B23001_133",
+  women_employed_45_54 = "B23001_135",
+  women_unemployed_45_54 = "B23001_136",
+  women_not_in_labor_45_54 = "B23001_137",
+  women_armed_55_59 = "B23001_140",
+  women_employed_55_59 = "B23001_142",
+  women_unemployed_55_59 = "B23001_143",
+  women_not_in_labor_55_59 = "B23001_144",
+  women_armed_60_61 = "B23001_147",
+  women_employed_60_61 = "B23001_149",
+  women_unemployed_60_61 = "B23001_150",
+  women_not_in_labor_60_61 = "B23001_151",
+  women_armed_62_64 = "B23001_154",
+  women_employed_62_64 = "B23001_156",
+  women_unemployed_62_64 = "B23001_157",
+  women_not_in_labor_62_64 = "B23001_158",
+  women_employed_65_69 = "B23001_161",
+  women_unemployed_65_69 = "B23001_162",
+  women_not_in_labor_65_69 = "B23001_163",
+  women_employed_70_74 = "B23001_166",
+  women_unemployed_70_74 = "B23001_167",
+  women_not_in_labor_70_74 = "B23001_168",
+  women_employed_75_over = "B23001_171",
+  women_unemployed_75_over = "B23001_172",
+  women_not_in_labor_75_over = "B23001_173"
+)
+# Retrieve ACS data for the specified variables
+MN_data <- get_acs(
+  geography = "state",   # Specify geography level
+  variables = variables, # Variables to retrieve
+  year = 2022,           # ACS data year
+  survey = "acs5",       # Use 1-year estimates
+  output = "wide"        # Retrieve data in wide format
+)
+
+# Function to clean unemployment data dynamically with error handling
+clean_unemployment_data <- function(data, groups, categories) {
+  # Initialize selected variables with GEOID and NAME
+  selected_vars <- c(
+    GEOID = "GEOID",
+    NAME = "NAME"
+  )
+  
+  # Dynamically create column mappings
+  for (group in groups) {
+    for (category in categories) {
+      col_name <- paste(category, group, sep = "_")
+      col_value <- paste0(col_name, "E")
+      selected_vars[col_name] <- col_value
+    }
+  }
+  
+  # Filter for existing columns
+  selected_vars <- selected_vars[selected_vars %in% colnames(data)]
+  
+  # Use dynamically created column mappings to select and rename
+  cleaned_data <- data %>%
+    select(!!!selected_vars)
+  
+  return(cleaned_data)
+}
+
+# Define groups and categories based on the pattern
+age_groups <- c("16_19", "20_21", "22_24", "25_29", "30_34", "35_44", "45_54", "55_59", "60_61", "62_64", "65_69", "70_74", "75_over")
+categories <- c("men_armed", "men_employed", "men_unemployed", "men_not_in_labor",
+                "women_armed", "women_employed", "women_unemployed", "women_not_in_labor")
+
+# Apply the function
+cleaned_data_unemployed <- clean_unemployment_data(
+  data = MN_data,
+  groups = age_groups,
+  categories = categories
+)
+# Pivot the data longer
+data_pivot_longer <- cleaned_data_unemployed %>% 
+  pivot_longer(
+    cols = -c(GEOID, NAME),  # Keep GEOID and NAME fixed
+    names_to = "employment_status",  # New column for status
+    values_to = "value"  # New column for values
+  )
+
+# Extract employment type (armed, employed, unemployed, not_in_labor) from the status
+data_pivot_longer <- data_pivot_longer %>%
+  mutate(
+    category = case_when(
+      str_detect(employment_status, "unemployed") ~ "unemployed",  # Check "unemployed" first
+      str_detect(employment_status, "armed") ~ "armed",
+      str_detect(employment_status, "employed") ~ "employed",      # Check "employed" after "unemployed"
+      str_detect(employment_status, "not_in_labor") ~ "not_in_labor",
+      TRUE ~ "other"  # Fallback category
+    )
+  )
+
+# Verify that all categories are correctly assigned
+print(data_pivot_longer %>% count(category))  # Check category counts
+
+# Ensure pivoting wider works properly and columns are correctly named
+state_totals <- data_pivot_longer %>%
+  group_by(NAME, category) %>%  # Group by state name and category
+  summarise(
+    total = sum(value, na.rm = TRUE),  # Calculate totals
+    .groups = "drop"  # Drop grouping after summarisation
+  )
+
+# Group and calculate totals for each category per state
+state_totals <- data_pivot_longer %>%
+  group_by(NAME, category) %>%  # Group by state name and category
+  summarise(
+    total = sum(value, na.rm = TRUE),  # Calculate totals
+    .groups = "drop"  # Drop grouping after summarisation
+  )
+
+# Pivot wider to have one row per state with totals for each category
+state_totals_wide <- state_totals %>%
+  pivot_wider(
+    names_from = category,  # Columns become categories (armed, employed, unemployed, not_in_labor)
+    values_from = total,  # Values are the calculated totals
+    values_fill = 0  # Fill missing values with 0
+  ) %>%
+  # Add a new column for employment percentage
+  mutate(
+    total_population = armed + employed + unemployed + not_in_labor,  # Total population in the state
+    employment_percentage = ifelse(total_population > 0, (employed / total_population) * 100, NA)  # Calculate percentage
+  )
+
+
+# employment precentage by state
+percentage_employment_state <- state_totals_wide %>% 
+  select(employment_percentage, NAME)
+
+```
+
+
+```{r}
+# Define variables for poverty status by age and sex
+poverty_variables <- c(
+  total_poverty = "B17001_002",
+  male_under_5 = "B17001_004",
+  male_5_years = "B17001_005",
+  male_6_11_years = "B17001_006",
+  male_12_14_years = "B17001_007",
+  male_15_years = "B17001_008",
+  male_16_17_years = "B17001_009",
+  male_18_24_years = "B17001_010",
+  male_25_34_years = "B17001_011",
+  male_35_44_years = "B17001_012",
+  male_45_54_years = "B17001_013",
+  male_55_64_years = "B17001_014",
+  male_65_74_years = "B17001_015",
+  male_75_years_over = "B17001_016",
+  female_under_5 = "B17001_018",
+  female_5_years = "B17001_019",
+  female_6_11_years = "B17001_020",
+  female_12_14_years = "B17001_021",
+  female_15_years = "B17001_022",
+  female_16_17_years = "B17001_023",
+  female_18_24_years = "B17001_024",
+  female_25_34_years = "B17001_025",
+  female_35_44_years = "B17001_026",
+  female_45_54_years = "B17001_027",
+  female_55_64_years = "B17001_028",
+  female_65_74_years = "B17001_029",
+  female_75_years_over = "B17001_030"
+)
+
+# Retrieve ACS data for the specified variables
+poverty_data <- get_acs(
+  geography = "state",    # State-level data
+  variables = poverty_variables,  # Variables to retrieve
+  year = 2022,            # ACS data year
+  survey = "acs5",        # Use 5-year estimates
+  output = "wide"         # Retrieve data in wide format
+)
+
+# Select relevant columns and clean the data
+cleaned_poverty_data <- poverty_data %>%
+  select(
+    GEOID,  # Geographic ID
+    NAME,   # State name
+    total_poverty = total_povertyE,
+    male_under_5 = male_under_5E,
+    male_5_years = male_5_yearsE,
+    male_6_11_years = male_6_11_yearsE,
+    male_12_14_years = male_12_14_yearsE,
+    male_15_years = male_15_yearsE,
+    male_16_17_years = male_16_17_yearsE,
+    male_18_24_years = male_18_24_yearsE,
+    male_25_34_years = male_25_34_yearsE,
+    male_35_44_years = male_35_44_yearsE,
+    male_45_54_years = male_45_54_yearsE,
+    male_55_64_years = male_55_64_yearsE,
+    male_65_74_years = male_65_74_yearsE,
+    male_75_years_over = male_75_years_overE,
+    female_under_5 = female_under_5E,
+    female_5_years = female_5_yearsE,
+    female_6_11_years = female_6_11_yearsE,
+    female_12_14_years = female_12_14_yearsE,
+    female_15_years = female_15_yearsE,
+    female_16_17_years = female_16_17_yearsE,
+    female_18_24_years = female_18_24_yearsE,
+    female_25_34_years = female_25_34_yearsE,
+    female_35_44_years = female_35_44_yearsE,
+    female_45_54_years = female_45_54_yearsE,
+    female_55_64_years = female_55_64_yearsE,
+    female_65_74_years = female_65_74_yearsE,
+    female_75_years_over = female_75_years_overE
+  )
+
+# Calculate percentage poverty status for each state
+poverty_percentage_data <- cleaned_poverty_data %>%
+  mutate(
+    # Calculate the total male and female population in poverty by summing all age groups
+    total_male_poverty = rowSums(select(., starts_with("male_")), na.rm = TRUE),
+    total_female_poverty = rowSums(select(., starts_with("female_")), na.rm = TRUE),
+    
+    # Calculate total population in poverty (male + female)
+    total_population_poverty = total_male_poverty + total_female_poverty,
+    
+    # Calculate percentage of poverty status for each state
+    poverty_percentage = ifelse(total_poverty > 0, (total_population_poverty / total_poverty) * 100, NA)
+  ) %>%
+  select(GEOID, NAME, total_population_poverty)
+
+# Display the results
+print(poverty_percentage_data)
+
+```
+
